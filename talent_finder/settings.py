@@ -12,8 +12,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── Security ─────────────────────────────────────────────────────────────────
 SECRET_KEY = 'django-insecure-talent-finder-2024-mca-project-change-in-production'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+
+DEBUG = False
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '.onrender.com'
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com'
+]
 
 # ─── Installed Applications ────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -35,6 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'talent_finder.urls'
@@ -88,7 +99,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'static'
+    BASE_DIR / 'talentfinder' / 'static',
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -113,3 +124,5 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
