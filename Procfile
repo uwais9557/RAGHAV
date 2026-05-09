@@ -1,1 +1,1 @@
-web: gunicorn talentfinder.wsgi
+web: gunicorn talent_finder.wsgi
