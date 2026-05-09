@@ -1,0 +1,350 @@
+{% extends 'talentfinder/base.html' %}
+{% load static %}
+{% block title %}Dashboard - Talent Finder{% endblock %}
+
+{% block content %}
+<section class="dashboard-section z-1">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+      <div>
+        <h2 style="font-family:'Syne',sans-serif;font-weight:800;margin:0;">
+          Welcome back, <span class="text-gradient">{{ user.first_name|default:user.username }}</span> 👋
+        </h2>
+        <p style="color:var(--text-muted);margin:0;font-size:0.9rem;">
+          <i class="fas fa-file me-1"></i>{{ resume.original_filename }} &nbsp;·&nbsp;
+          <i class="fas fa-clock me-1"></i>Analyzed {{ resume.analyzed_at|timesince }} ago
+        </p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'upload_resume' %}" class="btn-outline-custom text-decoration-none" style="font-size:0.88rem;padding:0.6rem 1.2rem;border-radius:10px;">
+          <i class="fas fa-upload me-1"></i>New Resume
+        </a>
+        <a href="{% url 'jobs' %}" class="btn-primary-custom text-decoration-none" style="font-size:0.88rem;padding:0.6rem 1.2rem;border-radius:10px;">
+          <i class="fas fa-briefcase me-1"></i>Browse Jobs
+        </a>
+      </div>
+    </div>
+
+    <!-- ── STAT CARDS ──────────────────────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(108,99,255,0.15);color:var(--primary);">
+            <i class="fas fa-star"></i>
+          </div>
+          <div>
+            <div class="stat-number">{{ ats_score }}</div>
+            <div class="stat-label">ATS Score</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(67,233,123,0.15);color:var(--accent);">
+            <i class="fas fa-code"></i>
+          </div>
+          <div>
+            <div class="stat-number">{{ total_skills }}</div>
+            <div class="stat-label">Skills Detected</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(255,101,132,0.15);color:var(--secondary);">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <div>
+            <div class="stat-number">{{ job_matches|length }}</div>
+            <div class="stat-label">Jobs Matched</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(56,249,215,0.15);color:var(--accent2);">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <div>
+            <div class="stat-number">{{ missing_skills|length }}</div>
+            <div class="stat-label">Skills to Learn</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MAIN GRID ───────────────────────────────────────────────────────── -->
+    <div class="row g-4">
+
+      <!-- LEFT: ATS Score + Skills Chart -->
+      <div class="col-lg-4">
+
+        <!-- ATS Score Card -->
+        <div class="chart-container mb-4 text-center">
+          <div class="chart-title justify-content-center">
+            <i class="fas fa-award" style="color:var(--primary);"></i> ATS Resume Score
+          </div>
+          <div style="position:relative;width:180px;height:100px;margin:0 auto 0.5rem;">
+            <canvas id="scoreGauge" data-score="{{ ats_score }}" width="180" height="100"></canvas>
+            <div style="position:absolute;bottom:0;width:100%;text-align:center;">
+              <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;">{{ ats_score }}</div>
+              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">out of 100</div>
+            </div>
+          </div>
+          <div style="margin-top:1.5rem;">
+            {% if ats_score >= 70 %}
+            <span style="background:rgba(67,233,123,0.15);color:var(--accent);padding:0.3rem 1rem;border-radius:50px;font-size:0.82rem;font-weight:600;">
+              <i class="fas fa-check-circle me-1"></i>Excellent Score! ATS-Ready
+            </span>
+            {% elif ats_score >= 40 %}
+            <span style="background:rgba(255,165,0,0.15);color:orange;padding:0.3rem 1rem;border-radius:50px;font-size:0.82rem;font-weight:600;">
+              <i class="fas fa-exclamation-circle me-1"></i>Good — Needs Improvement
+            </span>
+            {% else %}
+            <span style="background:rgba(255,101,132,0.15);color:var(--secondary);padding:0.3rem 1rem;border-radius:50px;font-size:0.82rem;font-weight:600;">
+              <i class="fas fa-times-circle me-1"></i>Needs Major Improvement
+            </span>
+            {% endif %}
+          </div>
+
+          <!-- Breakdown -->
+          <div style="margin-top:1.5rem;text-align:left;">
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.4rem;">
+              <span>Skills (40%)</span><span style="color:var(--text);font-weight:600;">{{ total_skills|add:0 }} detected</span>
+            </div>
+            <div class="progress-bar-custom mb-3" data-width="{{ total_skills|add:0|floatformat:0 }}">
+              <div class="progress-fill" style="width:0%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.4rem;">
+              <span>Education</span><span style="color:var(--text);font-weight:600;">{{ resume.education_level|default:"Detected" }}</span>
+            </div>
+            <div class="progress-bar-custom mb-3" data-width="70">
+              <div class="progress-fill" style="width:0%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.4rem;">
+              <span>Experience</span><span style="color:var(--text);font-weight:600;">{{ resume.experience_years }}+ years</span>
+            </div>
+            <div class="progress-bar-custom" data-width="60">
+              <div class="progress-fill" style="width:0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills Donut Chart -->
+        <div class="chart-container">
+          <div class="chart-title">
+            <i class="fas fa-chart-pie" style="color:var(--secondary);"></i> Skills Distribution
+          </div>
+          <canvas id="skillsChart" data-skills='{{ skill_categories_json }}' style="max-height:260px;"></canvas>
+        </div>
+      </div>
+
+      <!-- RIGHT: Job Matches + Skills -->
+      <div class="col-lg-8">
+
+        <!-- Candidate Info -->
+        <div class="card-custom mb-4" style="background:var(--gradient-card);">
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="profile-avatar" style="width:64px;height:64px;font-size:1.5rem;">
+              {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+            </div>
+            <div style="flex:1;min-width:0;">
+              <h5 style="font-family:'Syne',sans-serif;font-weight:700;margin:0;">{{ resume.candidate_name|default:user.get_full_name }}</h5>
+              <div style="color:var(--text-muted);font-size:0.85rem;display:flex;flex-wrap:wrap;gap:1rem;margin-top:0.3rem;">
+                {% if resume.candidate_email %}<span><i class="fas fa-envelope me-1"></i>{{ resume.candidate_email }}</span>{% endif %}
+                {% if resume.candidate_phone %}<span><i class="fas fa-phone me-1"></i>{{ resume.candidate_phone }}</span>{% endif %}
+                {% if resume.education_level %}<span><i class="fas fa-graduation-cap me-1"></i>{{ resume.education_level }}</span>{% endif %}
+                {% if resume.experience_years %}<span><i class="fas fa-briefcase me-1"></i>{{ resume.experience_years }}+ yrs exp.</span>{% endif %}
+              </div>
+            </div>
+            <span style="background:rgba(67,233,123,0.15);color:var(--accent);padding:0.4rem 1rem;border-radius:50px;font-size:0.82rem;font-weight:600;white-space:nowrap;">
+              <i class="fas fa-check-circle me-1"></i>Analysis Complete
+            </span>
+          </div>
+        </div>
+
+        <!-- Top Job Matches -->
+        <div class="chart-container mb-4">
+          <div class="chart-title mb-3">
+            <i class="fas fa-bullseye" style="color:var(--primary);"></i> Top Job Matches
+            <span style="font-size:0.78rem;font-weight:400;color:var(--text-muted);margin-left:auto;">Based on your resume skills</span>
+          </div>
+          <div class="d-flex flex-column gap-3">
+            {% for jm in job_matches %}
+            <div class="job-match-card">
+              <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                <div style="flex:1;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.3rem;">
+                    <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin:0;">{{ jm.job.title }}</h6>
+                    <span class="job-type-badge badge-{{ jm.job.job_type }}">{{ jm.job.get_job_type_display }}</span>
+                  </div>
+                  <div style="color:var(--text-muted);font-size:0.83rem;margin-bottom:0.5rem;">
+                    <i class="fas fa-building me-1"></i>{{ jm.job.company.name }}
+                    <span class="mx-2">·</span>
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ jm.job.location|truncatechars:30 }}
+                    <span class="mx-2">·</span>
+                    <span style="color:var(--accent);">{{ jm.job.salary_display }}</span>
+                  </div>
+                  <div class="progress-bar-custom" data-width="{{ jm.match_percentage|floatformat:0 }}">
+                    <div class="progress-fill" style="width:0%;"></div>
+                  </div>
+                </div>
+                <div class="d-flex flex-column align-items-end gap-2">
+                  <span class="match-percentage-badge">{{ jm.match_percentage|floatformat:0 }}%</span>
+                  <a href="{% url 'job_detail' jm.job.id %}" style="font-size:0.78rem;color:var(--primary-light);">View Details →</a>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center" style="padding:2rem;color:var(--text-muted);">
+              <i class="fas fa-search fa-2x mb-2" style="opacity:0.3;"></i>
+              <p>No job matches found. Please populate jobs using <code>python manage.py populate_data</code></p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECOND ROW: Skills + Companies + Courses ─────────────────────── -->
+    <div class="row g-4 mt-1">
+
+      <!-- Detected Skills -->
+      <div class="col-lg-4">
+        <div class="chart-container h-100">
+          <div class="chart-title mb-3">
+            <i class="fas fa-code" style="color:var(--accent);"></i> Detected Skills
+            <span class="ms-auto" style="font-size:0.78rem;font-weight:400;color:var(--text-muted);">{{ total_skills }} total</span>
+          </div>
+          {% for category, skills in skills_by_category.items %}
+          <div style="margin-bottom:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;font-weight:600;">{{ category }}</div>
+            <div class="d-flex flex-wrap gap-1">
+              {% for skill in skills %}
+              <span class="skill-tag matched"><i class="fas fa-check me-1" style="font-size:0.7rem;"></i>{{ skill.name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% empty %}
+          <p style="color:var(--text-muted);font-size:0.9rem;">No skills detected yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Recommended Companies -->
+      <div class="col-lg-4">
+        <div class="chart-container h-100">
+          <div class="chart-title mb-3">
+            <i class="fas fa-building" style="color:var(--secondary);"></i> Top Companies
+          </div>
+          <div class="d-flex flex-column gap-3">
+            {% for item in matched_companies %}
+            <div class="company-card" style="padding:1rem;">
+              <div class="company-logo" style="width:44px;height:44px;font-size:0.95rem;border-radius:8px;">{{ item.company.name|first }}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ item.company.name }}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);"><i class="fas fa-map-marker-alt me-1"></i>{{ item.company.city }}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:1px;">{{ item.job.title }}</div>
+              </div>
+              <div style="flex-shrink:0;text-align:right;">
+                <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--accent);">{{ item.match|floatformat:0 }}%</div>
+                <div class="company-rating" style="font-size:0.72rem;justify-content:flex-end;"><i class="fas fa-star"></i> {{ item.company.rating }}</div>
+              </div>
+            </div>
+            {% empty %}
+            <p style="color:var(--text-muted);font-size:0.9rem;">No companies matched yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill Gap + Courses -->
+      <div class="col-lg-4">
+        <div class="chart-container h-100">
+          <div class="chart-title mb-3">
+            <i class="fas fa-graduation-cap" style="color:orange;"></i> Skills to Learn
+          </div>
+
+          {% if missing_skills %}
+          <div class="d-flex flex-wrap gap-1 mb-3">
+            {% for skill in missing_skills %}
+            <span class="skill-tag missing"><i class="fas fa-plus me-1" style="font-size:0.7rem;"></i>{{ skill }}</span>
+            {% endfor %}
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:0.75rem;">Recommended Courses</div>
+          <div class="d-flex flex-column gap-2">
+            {% for course in course_suggestions %}
+            <a href="{{ course.url }}" target="_blank" class="course-card text-decoration-none">
+              <div class="course-icon"><i class="fas {{ course.icon }}"></i></div>
+              <div style="min-width:0;">
+                <div style="font-weight:600;font-size:0.82rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ course.name }}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">{{ course.platform }} · {{ course.skill }}</div>
+              </div>
+              <i class="fas fa-external-link-alt ms-auto" style="font-size:0.7rem;color:var(--text-dim);flex-shrink:0;"></i>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center" style="padding:2rem 0;">
+            <i class="fas fa-trophy fa-2x mb-2" style="color:var(--accent);"></i>
+            <p style="color:var(--text-muted);font-size:0.9rem;">Great! You have all skills needed for top job matches.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RESUME HISTORY ──────────────────────────────────────────────────── -->
+    {% if all_resumes.count > 1 %}
+    <div class="chart-container mt-4">
+      <div class="chart-title mb-3">
+        <i class="fas fa-history" style="color:var(--accent2);"></i> Upload History
+      </div>
+      <div class="table-responsive">
+        <table style="width:100%;border-collapse:separate;border-spacing:0 8px;">
+          <thead>
+            <tr style="font-size:0.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;">
+              <th style="padding:0 1rem;font-weight:600;">File</th>
+              <th style="padding:0 1rem;font-weight:600;">Type</th>
+              <th style="padding:0 1rem;font-weight:600;">ATS Score</th>
+              <th style="padding:0 1rem;font-weight:600;">Skills</th>
+              <th style="padding:0 1rem;font-weight:600;">Date</th>
+              <th style="padding:0 1rem;font-weight:600;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in all_resumes %}
+            <tr style="background:var(--bg-card2);border-radius:var(--radius-sm);font-size:0.87rem;">
+              <td style="padding:0.75rem 1rem;border-radius:var(--radius-sm) 0 0 var(--radius-sm);">
+                <i class="fas fa-file me-2" style="color:var(--primary);"></i>{{ r.original_filename|truncatechars:25 }}
+              </td>
+              <td style="padding:0.75rem 1rem;">
+                <span class="format-badge">{{ r.file_type|upper }}</span>
+              </td>
+              <td style="padding:0.75rem 1rem;">
+                <span style="font-weight:700;color:{% if r.ats_score >= 70 %}var(--accent){% elif r.ats_score >= 40 %}orange{% else %}var(--secondary){% endif %}">
+                  {{ r.ats_score }}/100
+                </span>
+              </td>
+              <td style="padding:0.75rem 1rem;">{{ r.detected_skills.count }} skills</td>
+              <td style="padding:0.75rem 1rem;color:var(--text-muted);">{{ r.uploaded_at|date:"M d, Y" }}</td>
+              <td style="padding:0.75rem 1rem;border-radius:0 var(--radius-sm) var(--radius-sm) 0;">
+                <span style="font-size:0.75rem;padding:0.2rem 0.6rem;border-radius:50px;
+                  background:{% if r.status == 'completed' %}rgba(67,233,123,0.15){% else %}rgba(255,165,0,0.15){% endif %};
+                  color:{% if r.status == 'completed' %}var(--accent){% else %}orange{% endif %};">
+                  {{ r.get_status_display }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

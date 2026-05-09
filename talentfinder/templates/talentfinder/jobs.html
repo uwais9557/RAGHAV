@@ -1,0 +1,135 @@
+{% extends 'talentfinder/base.html' %}
+{% load static %}
+{% block title %}Browse Jobs - Talent Finder{% endblock %}
+
+{% block content %}
+<section class="z-1" style="padding:3rem 0 5rem;">
+  <div class="container">
+    <!-- Header -->
+    <div class="text-center mb-5 animate-on-scroll">
+      <div class="hero-badge d-inline-flex mb-3"><span class="dot"></span> {{ total_count }} Jobs Available</div>
+      <h1 class="section-title">Browse <span class="text-gradient">Jobs</span></h1>
+      <p class="section-subtitle">Discover opportunities that match your skills and career goals</p>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card-custom mb-5">
+      <form method="GET" id="filterForm">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-5">
+            <label class="form-label-custom">Search Jobs</label>
+            <div style="position:relative;">
+              <i class="fas fa-search" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-dim);"></i>
+              <input type="text" name="q" id="jobSearchInput" class="search-bar form-control" placeholder="Job title, company, or keyword..." value="{{ search_query }}" style="padding-left:2.8rem;">
+            </div>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label-custom">Experience</label>
+            <select name="experience" class="search-bar form-select">
+              <option value="">All Levels</option>
+              <option value="fresher" {% if exp_filter == 'fresher' %}selected{% endif %}>Fresher</option>
+              <option value="junior" {% if exp_filter == 'junior' %}selected{% endif %}>Junior (1-3yr)</option>
+              <option value="mid" {% if exp_filter == 'mid' %}selected{% endif %}>Mid-level</option>
+              <option value="senior" {% if exp_filter == 'senior' %}selected{% endif %}>Senior</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label-custom">Job Type</label>
+            <select name="job_type" class="search-bar form-select">
+              <option value="">All Types</option>
+              <option value="full_time" {% if type_filter == 'full_time' %}selected{% endif %}>Full Time</option>
+              <option value="internship" {% if type_filter == 'internship' %}selected{% endif %}>Internship</option>
+              <option value="remote" {% if type_filter == 'remote' %}selected{% endif %}>Remote</option>
+              <option value="contract" {% if type_filter == 'contract' %}selected{% endif %}>Contract</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label-custom">Skill Filter</label>
+            <input type="text" name="skill" class="search-bar form-control" placeholder="e.g. Python" value="{{ skill_filter }}">
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn-primary-custom w-100 justify-content-center" style="padding:0.75rem;border-radius:var(--radius-sm);">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        {% if search_query or exp_filter or type_filter or skill_filter %}
+        <div class="mt-3">
+          <a href="{% url 'jobs' %}" style="color:var(--text-muted);font-size:0.85rem;">
+            <i class="fas fa-times me-1"></i>Clear all filters
+          </a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Results Count -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <p style="color:var(--text-muted);font-size:0.9rem;margin:0;">
+        Showing <strong style="color:var(--text);">{{ total_count }}</strong> job{% if total_count != 1 %}s{% endif %}
+        {% if search_query %} for "<strong>{{ search_query }}</strong>"{% endif %}
+      </p>
+      {% if user.is_authenticated %}
+      <a href="{% url 'upload_resume' %}" style="font-size:0.85rem;color:var(--primary-light);">
+        <i class="fas fa-magic me-1"></i>Get personalized matches →
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Job Cards Grid -->
+    <div class="row g-4">
+      {% for job in jobs %}
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="job-card">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="company-logo" style="width:48px;height:48px;font-size:1rem;border-radius:10px;">
+              {{ job.company.name|first }}
+            </div>
+            <div class="d-flex flex-column align-items-end gap-1">
+              <span class="job-type-badge badge-{{ job.job_type }}">{{ job.get_job_type_display }}</span>
+              <span style="font-size:0.72rem;color:var(--text-dim);">{{ job.posted_date|date:"M d" }}</span>
+            </div>
+          </div>
+
+          <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.25rem;">{{ job.title }}</h6>
+          <p style="color:var(--text-muted);font-size:0.83rem;margin-bottom:0.75rem;">
+            <i class="fas fa-building me-1"></i>{{ job.company.name }}
+          </p>
+          <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem;">
+            <i class="fas fa-map-marker-alt me-1"></i>{{ job.location|truncatechars:35 }}
+          </p>
+
+          <!-- Required Skills (first 4) -->
+          <div class="d-flex flex-wrap gap-1 mb-3">
+            {% for skill in job.required_skills.all|slice:":4" %}
+            <span class="skill-tag" style="font-size:0.72rem;padding:0.2rem 0.5rem;">{{ skill.name }}</span>
+            {% endfor %}
+            {% if job.required_skills.count > 4 %}
+            <span style="font-size:0.72rem;color:var(--text-dim);padding:0.2rem 0.4rem;">+{{ job.required_skills.count|add:"-4" }} more</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div style="color:var(--accent);font-weight:700;font-size:0.9rem;">{{ job.salary_display }}</div>
+              <div style="font-size:0.75rem;color:var(--text-dim);">{{ job.get_experience_level_display }}</div>
+            </div>
+            <a href="{% url 'job_detail' job.id %}" class="btn-primary-custom text-decoration-none" style="font-size:0.78rem;padding:0.45rem 1.1rem;border-radius:8px;">
+              View Job
+            </a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center" style="padding:4rem 0;">
+        <i class="fas fa-briefcase fa-3x mb-3" style="opacity:0.2;"></i>
+        <h5 style="color:var(--text-muted);">No jobs found</h5>
+        <p style="color:var(--text-dim);">
+          {% if search_query %}Try different search terms or <a href="{% url 'jobs' %}">clear filters</a>{% else %}Run <code>python manage.py populate_data</code> to add sample jobs{% endif %}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

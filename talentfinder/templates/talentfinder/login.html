@@ -1,0 +1,80 @@
+{% extends 'talentfinder/base.html' %}
+{% load static %}
+{% block title %}Login - Talent Finder{% endblock %}
+
+{% block content %}
+<section class="auth-section z-1">
+  <div class="hero-orb hero-orb-1" style="opacity:0.07;"></div>
+  <div class="hero-orb hero-orb-2" style="opacity:0.07;"></div>
+  <div class="container">
+    <div class="auth-card">
+      <!-- Logo -->
+      <div class="text-center mb-4">
+        <div style="width:64px;height:64px;border-radius:16px;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.8rem;color:white;box-shadow:var(--shadow-glow);">
+          <i class="fas fa-brain"></i>
+        </div>
+        <h3 style="font-family:'Syne',sans-serif;font-weight:800;">Welcome Back</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem;">Sign in to your Talent Finder account</p>
+      </div>
+
+      <!-- Form -->
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-circle me-2"></i>{{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label-custom">Username</label>
+          <div style="position:relative;">
+            <i class="fas fa-user" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.9rem;"></i>
+            <input type="text" name="username" class="form-control form-control-custom" placeholder="Enter your username" style="padding-left:2.8rem;" value="{{ form.username.value|default:'' }}" autocomplete="username">
+          </div>
+          {% if form.username.errors %}<div style="color:var(--secondary);font-size:0.8rem;margin-top:0.3rem;">{{ form.username.errors }}</div>{% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label-custom">Password</label>
+          <div style="position:relative;">
+            <i class="fas fa-lock" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.9rem;"></i>
+            <input type="password" name="password" id="passwordField" class="form-control form-control-custom" placeholder="Enter your password" style="padding-left:2.8rem;padding-right:3rem;" autocomplete="current-password">
+            <button type="button" onclick="togglePassword()" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;">
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+          {% if form.password.errors %}<div style="color:var(--secondary);font-size:0.8rem;margin-top:0.3rem;">{{ form.password.errors }}</div>{% endif %}
+        </div>
+
+        <button type="submit" class="btn-primary-custom w-100 justify-content-center" style="font-size:1rem;padding:0.9rem;border-radius:var(--radius-sm);">
+          <i class="fas fa-sign-in-alt me-2"></i>Sign In
+        </button>
+      </form>
+
+      <div class="text-center mt-4" style="color:var(--text-muted);font-size:0.9rem;">
+        Don't have an account?
+        <a href="{% url 'register' %}" style="color:var(--primary-light);font-weight:600;">Create Account →</a>
+      </div>
+
+      <!-- Demo hint -->
+      <div style="margin-top:1.5rem;padding:0.75rem;background:rgba(108,99,255,0.08);border-radius:var(--radius-sm);text-align:center;">
+        <p style="font-size:0.8rem;color:var(--text-muted);margin:0;">
+          <i class="fas fa-info-circle me-1"></i>New here? <a href="{% url 'register' %}" style="color:var(--primary-light);">Create a free account</a> and upload your resume to get started.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+  const f = document.getElementById('passwordField');
+  const i = document.getElementById('eyeIcon');
+  if (f.type === 'password') { f.type = 'text'; i.className = 'fas fa-eye-slash'; }
+  else { f.type = 'password'; i.className = 'fas fa-eye'; }
+}
+</script>
+{% endblock %}

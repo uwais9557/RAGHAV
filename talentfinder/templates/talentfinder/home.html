@@ -1,0 +1,313 @@
+{% extends 'talentfinder/base.html' %}
+{% load static %}
+{% block title %}Talent Finder - AI Resume Analyzer & Job Recommender{% endblock %}
+
+{% block content %}
+
+<!-- ═══ HERO SECTION ══════════════════════════════════════════════════════════ -->
+<section class="hero-section z-1">
+  <div class="hero-bg"></div>
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+
+  <div class="container z-1">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-badge">
+          <span class="dot"></span> AI-Powered Resume Intelligence
+        </div>
+        <h1 class="hero-title">
+          Land Your <span class="text-gradient">Dream Job</span><br>With Smart Resume Analysis
+        </h1>
+        <p class="hero-subtitle">
+          Upload your resume and let our AI instantly extract skills, calculate your ATS score,
+          match you with the best jobs, and guide your career path — all in seconds.
+        </p>
+        <div class="hero-actions">
+          {% if user.is_authenticated %}
+            <a href="{% url 'upload_resume' %}" class="btn-primary-custom text-decoration-none" style="font-size:1rem; padding:0.9rem 2.2rem;">
+              <i class="fas fa-upload"></i> Analyze My Resume
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn-outline-custom text-decoration-none" style="font-size:1rem; padding:0.9rem 2.2rem;">
+              <i class="fas fa-chart-bar"></i> My Dashboard
+            </a>
+          {% else %}
+            <a href="{% url 'register' %}" class="btn-primary-custom text-decoration-none" style="font-size:1rem; padding:0.9rem 2.2rem;">
+              <i class="fas fa-rocket"></i> Get Started Free
+            </a>
+            <a href="{% url 'jobs' %}" class="btn-outline-custom text-decoration-none" style="font-size:1rem; padding:0.9rem 2.2rem;">
+              <i class="fas fa-briefcase"></i> Browse Jobs
+            </a>
+          {% endif %}
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-number" data-count="{{ total_jobs }}" data-suffix="+">0+</div>
+            <div class="hero-stat-label">Active Jobs</div>
+          </div>
+          <div>
+            <div class="hero-stat-number" data-count="{{ total_companies }}" data-suffix="+">0+</div>
+            <div class="hero-stat-label">Companies</div>
+          </div>
+          <div>
+            <div class="hero-stat-number" data-count="{{ total_skills }}" data-suffix="+">0+</div>
+            <div class="hero-stat-label">Skills Tracked</div>
+          </div>
+          <div>
+            <div class="hero-stat-number" data-count="{{ total_resumes }}" data-suffix="+">0+</div>
+            <div class="hero-stat-label">Resumes Analyzed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Visual -->
+      <div class="col-lg-6 d-none d-lg-block">
+        <div class="hero-visual" style="padding: 3rem 2rem;">
+          <!-- Main Resume Card -->
+          <div class="card-custom text-center" style="max-width:380px;margin:0 auto;padding:2rem;">
+            <div style="width:70px;height:70px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.8rem;color:white;">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <h5 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.5rem;">Resume Analyzed!</h5>
+            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem;">AI detected 12 skills & matched 5 jobs</p>
+            <!-- Fake ATS Score -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+              <span style="font-size:0.82rem;color:var(--text-muted);">ATS Score</span>
+              <span style="font-weight:700;color:var(--accent);">87/100</span>
+            </div>
+            <div class="progress-bar-custom" data-width="87">
+              <div class="progress-fill" style="width:87%;background:linear-gradient(90deg,#43E97B,#38F9D7);"></div>
+            </div>
+            <div class="d-flex flex-wrap gap-1 mt-3 justify-content-center">
+              <span class="skill-tag">Python</span>
+              <span class="skill-tag">Django</span>
+              <span class="skill-tag">React</span>
+              <span class="skill-tag matched">Machine Learning</span>
+              <span class="skill-tag">SQL</span>
+            </div>
+          </div>
+
+          <!-- Floating cards -->
+          <div class="hero-card-float hero-card-1" style="min-width:180px;">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(67,233,123,0.2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;">
+              <i class="fas fa-check"></i>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem;">Top Match!</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);">Google India • 92%</div>
+            </div>
+          </div>
+
+          <div class="hero-card-float hero-card-2" style="min-width:180px;">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(108,99,255,0.2);display:flex;align-items:center;justify-content:center;color:var(--primary-light);flex-shrink:0;">
+              <i class="fas fa-brain"></i>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem;">AI Analysis</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);">12 skills detected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-gradient"></div>
+
+<!-- ═══ HOW IT WORKS ══════════════════════════════════════════════════════════ -->
+<section class="z-1" style="padding:5rem 0;background:var(--bg-card);position:relative;">
+  <div class="container">
+    <div class="text-center mb-5 animate-on-scroll">
+      <div class="hero-badge d-inline-flex mb-3">
+        <span class="dot"></span> Simple 3-Step Process
+      </div>
+      <h2 class="section-title">How It <span class="text-gradient">Works</span></h2>
+      <p class="section-subtitle">From upload to job match in under 30 seconds</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      {% for step in '123' %}
+      <div class="col-md-4 animate-on-scroll">
+        <div class="text-center card-custom h-100">
+          <div style="width:72px;height:72px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:white;box-shadow:0 8px 25px rgba(108,99,255,0.35);">
+            {{ forloop.counter }}
+          </div>
+          {% if forloop.counter == 1 %}
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Upload Your Resume</h5>
+          <p style="color:var(--text-muted);font-size:0.92rem;">Drag & drop or browse your resume in PDF, DOCX, TXT, or Image format. We accept all common formats.</p>
+          <div class="d-flex gap-1 justify-content-center flex-wrap mt-2">
+            <span class="format-badge">PDF</span><span class="format-badge">DOCX</span><span class="format-badge">TXT</span><span class="format-badge">PNG/JPG</span>
+          </div>
+          {% elif forloop.counter == 2 %}
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">AI Analyzes & Scores</h5>
+          <p style="color:var(--text-muted);font-size:0.92rem;">Our AI extracts text, detects 70+ skills using NLP, calculates your ATS score, and builds your profile automatically.</p>
+          <div class="d-flex gap-1 justify-content-center flex-wrap mt-2">
+            <span class="format-badge">NLP</span><span class="format-badge">TF-IDF</span><span class="format-badge">OCR</span>
+          </div>
+          {% else %}
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Get Job Matches</h5>
+          <p style="color:var(--text-muted);font-size:0.92rem;">Receive personalized job & company recommendations ranked by match %, with skill gap analysis and course suggestions.</p>
+          <div class="d-flex gap-1 justify-content-center flex-wrap mt-2">
+            <span class="format-badge">Top 5 Jobs</span><span class="format-badge">Companies</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES SECTION ══════════════════════════════════════════════════════ -->
+<section class="features-section z-1">
+  <div class="container">
+    <div class="text-center mb-5 animate-on-scroll">
+      <div class="hero-badge d-inline-flex mb-3"><span class="dot"></span> Powerful Features</div>
+      <h2 class="section-title">Everything You <span class="text-gradient">Need</span></h2>
+      <p class="section-subtitle">Advanced AI tools to accelerate your job search and career growth</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="card-custom h-100">
+          <div class="feature-icon-wrap feature-icon-1"><i class="fas fa-robot"></i></div>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">AI Resume Analysis</h5>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Extract text from PDF, DOCX, TXT, and image files using advanced OCR and NLP algorithms.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="card-custom h-100">
+          <div class="feature-icon-wrap feature-icon-2"><i class="fas fa-chart-pie"></i></div>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">ATS Score Calculator</h5>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Get your Applicant Tracking System score and understand how recruiters' systems will evaluate your resume.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="card-custom h-100">
+          <div class="feature-icon-wrap feature-icon-3"><i class="fas fa-bullseye"></i></div>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Smart Job Matching</h5>
+          <p style="color:var(--text-muted);font-size:0.9rem;">TF-IDF cosine similarity + skill matching algorithm recommends the top 5 most relevant jobs for you.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="card-custom h-100">
+          <div class="feature-icon-wrap feature-icon-4"><i class="fas fa-building"></i></div>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Company Recommendations</h5>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Discover top companies hiring for your skill set with location info, ratings, and open roles.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="card-custom h-100">
+          <div class="feature-icon-wrap feature-icon-5"><i class="fas fa-graduation-cap"></i></div>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Skill Gap Analysis</h5>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Identify missing skills and get personalized course recommendations from Coursera, Udemy, and more.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="card-custom h-100">
+          <div class="feature-icon-wrap feature-icon-6"><i class="fas fa-history"></i></div>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Resume History</h5>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Track all your uploaded resumes, compare scores over time, and see your career growth visually.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURED JOBS ══════════════════════════════════════════════════════════ -->
+<section class="z-1" style="padding:5rem 0; background:var(--bg-card);">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5 flex-wrap gap-3">
+      <div>
+        <div class="hero-badge d-inline-flex mb-2"><span class="dot"></span> Latest Openings</div>
+        <h2 class="section-title mb-0">Featured <span class="text-gradient">Jobs</span></h2>
+      </div>
+      <a href="{% url 'jobs' %}" class="btn-outline-custom text-decoration-none">View All Jobs <i class="fas fa-arrow-right ms-1"></i></a>
+    </div>
+
+    <div class="row g-4">
+      {% for job in featured_jobs %}
+      <div class="col-md-6 col-lg-4 animate-on-scroll">
+        <div class="job-card">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="company-logo" style="width:48px;height:48px;font-size:1rem;border-radius:10px;">
+              {{ job.company.name|first }}
+            </div>
+            <span class="job-type-badge badge-{{ job.job_type }}">{{ job.get_job_type_display }}</span>
+          </div>
+          <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.3rem;">{{ job.title }}</h6>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.8rem;">
+            <i class="fas fa-building me-1"></i>{{ job.company.name }}
+            <span class="mx-2">·</span>
+            <i class="fas fa-map-marker-alt me-1"></i>{{ job.location|truncatechars:25 }}
+          </p>
+          <div class="d-flex justify-content-between align-items-center">
+            <span style="color:var(--accent);font-weight:600;font-size:0.88rem;">{{ job.salary_display }}</span>
+            <a href="{% url 'job_detail' job.id %}" class="btn-primary-custom text-decoration-none" style="font-size:0.78rem;padding:0.4rem 1rem;border-radius:8px;">View Job</a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center" style="color:var(--text-muted);padding:3rem 0;">
+        <i class="fas fa-briefcase fa-3x mb-3" style="opacity:0.3;"></i>
+        <p>No jobs yet. Run <code>python manage.py populate_data</code> to add sample jobs.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COMPANIES ═════════════════════════════════════════════════════════════ -->
+<section class="z-1" style="padding:5rem 0;">
+  <div class="container">
+    <div class="text-center mb-5 animate-on-scroll">
+      <div class="hero-badge d-inline-flex mb-3"><span class="dot"></span> Top Employers</div>
+      <h2 class="section-title">Companies <span class="text-gradient">Hiring</span></h2>
+      <p class="section-subtitle">Connect with India's leading tech companies and startups</p>
+    </div>
+    <div class="row g-3">
+      {% for company in featured_companies %}
+      <div class="col-6 col-md-4 col-lg-3 animate-on-scroll">
+        <div class="company-card" style="padding:1rem;">
+          <div class="company-logo" style="width:44px;height:44px;font-size:0.95rem;">{{ company.name|first }}</div>
+          <div>
+            <div style="font-weight:600;font-size:0.88rem;">{{ company.name|truncatechars:20 }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);"><i class="fas fa-map-marker-alt me-1"></i>{{ company.city }}</div>
+            <div class="company-rating" style="font-size:0.78rem;margin-top:2px;">
+              <i class="fas fa-star"></i> {{ company.rating }}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center" style="color:var(--text-muted);">No companies yet. Run populate_data command.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA SECTION ═══════════════════════════════════════════════════════════ -->
+<section class="z-1" style="padding:5rem 0;background:var(--bg-card);">
+  <div class="container">
+    <div class="text-center" style="max-width:650px;margin:0 auto;">
+      <div style="width:80px;height:80px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;margin:0 auto 2rem;font-size:2rem;color:white;box-shadow:var(--shadow-glow);">
+        <i class="fas fa-rocket"></i>
+      </div>
+      <h2 class="section-title">Ready to Find Your <span class="text-gradient">Dream Job?</span></h2>
+      <p class="section-subtitle" style="margin-bottom:2.5rem;">Upload your resume now and get instant AI-powered job matches, skill analysis, and career guidance.</p>
+      {% if user.is_authenticated %}
+        <a href="{% url 'upload_resume' %}" class="btn-primary-custom text-decoration-none" style="font-size:1.05rem;padding:1rem 2.5rem;">
+          <i class="fas fa-upload me-2"></i>Analyze My Resume
+        </a>
+      {% else %}
+        <a href="{% url 'register' %}" class="btn-primary-custom text-decoration-none" style="font-size:1.05rem;padding:1rem 2.5rem;">
+          <i class="fas fa-user-plus me-2"></i>Create Free Account
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

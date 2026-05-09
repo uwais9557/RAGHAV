@@ -1,0 +1,160 @@
+{% extends 'talentfinder/base.html' %}
+{% load static %}
+{% block title %}My Profile - Talent Finder{% endblock %}
+
+{% block content %}
+<section class="z-1" style="padding:3rem 0 5rem;">
+  <div class="container">
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;margin-bottom:2rem;">
+      My <span class="text-gradient">Profile</span>
+    </h2>
+
+    <div class="row g-4">
+      <!-- Sidebar -->
+      <div class="col-lg-3">
+        <div class="card-custom text-center mb-4">
+          <div class="profile-avatar mx-auto mb-3" style="width:90px;height:90px;font-size:2rem;">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          </div>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.2rem;">{{ user.get_full_name|default:user.username }}</h5>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">{{ user.email }}</p>
+          <div style="background:var(--bg-card2);border-radius:var(--radius-sm);padding:0.75rem;display:flex;justify-content:space-around;">
+            <div style="text-align:center;">
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">{{ resumes.count }}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Resumes</div>
+            </div>
+            <div style="width:1px;background:var(--border-light);"></div>
+            <div style="text-align:center;">
+              {% with latest=resumes.first %}
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--accent);">{{ latest.ats_score|default:"--" }}</div>
+              {% endwith %}
+              <div style="font-size:0.72rem;color:var(--text-muted);">Best Score</div>
+            </div>
+          </div>
+        </div>
+
+        {% if profile.linkedin_url or profile.github_url %}
+        <div class="card-custom mb-4">
+          <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1rem;">Links</h6>
+          {% if profile.linkedin_url %}
+          <a href="{{ profile.linkedin_url }}" target="_blank" class="footer-link"><i class="fab fa-linkedin me-2" style="color:#0077B5;"></i>LinkedIn Profile</a>
+          {% endif %}
+          {% if profile.github_url %}
+          <a href="{{ profile.github_url }}" target="_blank" class="footer-link"><i class="fab fa-github me-2"></i>GitHub Profile</a>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <a href="{% url 'dashboard' %}" class="btn-outline-custom text-decoration-none w-100 justify-content-center mb-2" style="font-size:0.88rem;border-radius:10px;">
+          <i class="fas fa-chart-bar me-1"></i>Dashboard
+        </a>
+        <a href="{% url 'upload_resume' %}" class="btn-primary-custom text-decoration-none w-100 justify-content-center" style="font-size:0.88rem;border-radius:10px;">
+          <i class="fas fa-upload me-1"></i>New Resume
+        </a>
+      </div>
+
+      <!-- Main -->
+      <div class="col-lg-9">
+        <!-- Edit Profile Form -->
+        <div class="card-custom mb-4">
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-user-edit" style="color:var(--primary);"></i> Edit Profile
+          </h5>
+          <form method="POST">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label-custom">First Name</label>
+                <input type="text" name="first_name" class="form-control form-control-custom" value="{{ user.first_name }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">Last Name</label>
+                <input type="text" name="last_name" class="form-control form-control-custom" value="{{ user.last_name }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">Email</label>
+                <input type="email" name="email" class="form-control form-control-custom" value="{{ user.email }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">Phone</label>
+                <input type="text" name="phone" class="form-control form-control-custom" placeholder="+91 9876543210" value="{{ profile.phone }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">Location</label>
+                <input type="text" name="location" class="form-control form-control-custom" placeholder="City, State" value="{{ profile.location }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">Preferred Job Location</label>
+                <input type="text" name="preferred_location" class="form-control form-control-custom" placeholder="Mumbai, Bangalore..." value="{{ profile.preferred_location }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">LinkedIn URL</label>
+                <input type="url" name="linkedin_url" class="form-control form-control-custom" placeholder="https://linkedin.com/in/..." value="{{ profile.linkedin_url }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">GitHub URL</label>
+                <input type="url" name="github_url" class="form-control form-control-custom" placeholder="https://github.com/..." value="{{ profile.github_url }}">
+              </div>
+              <div class="col-12">
+                <label class="form-label-custom">Bio</label>
+                <textarea name="bio" class="form-control form-control-custom" rows="3" placeholder="Tell us about yourself...">{{ profile.bio }}</textarea>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary-custom mt-4" style="font-size:0.95rem;padding:0.8rem 2rem;border-radius:10px;">
+              <i class="fas fa-save me-2"></i>Save Changes
+            </button>
+          </form>
+        </div>
+
+        <!-- Resume History -->
+        <div class="card-custom">
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-file-alt" style="color:var(--secondary);"></i> Resume History
+          </h5>
+          {% if resumes %}
+          <div class="d-flex flex-column gap-3">
+            {% for resume in resumes %}
+            <div style="background:var(--bg-card2);border-radius:var(--radius-sm);padding:1.2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+              <div style="width:44px;height:44px;border-radius:8px;background:rgba(108,99,255,0.15);display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0;">
+                <i class="fas fa-file-{{ resume.file_type|lower }}"></i>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ resume.original_filename }}</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);">
+                  {{ resume.uploaded_at|date:"M d, Y H:i" }} · {{ resume.file_type|upper }} ·
+                  <span class="format-badge" style="font-size:0.7rem;">{{ resume.detected_skills.count }} skills</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:1rem;flex-shrink:0;">
+                <div style="text-align:center;">
+                  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:{% if resume.ats_score >= 70 %}var(--accent){% elif resume.ats_score >= 40 %}orange{% else %}var(--secondary){% endif %}">{{ resume.ats_score }}</div>
+                  <div style="font-size:0.7rem;color:var(--text-dim);">ATS Score</div>
+                </div>
+                <span style="font-size:0.75rem;padding:0.2rem 0.6rem;border-radius:50px;background:{% if resume.status == 'completed' %}rgba(67,233,123,0.15){% else %}rgba(255,165,0,0.15){% endif %};color:{% if resume.status == 'completed' %}var(--accent){% else %}orange{% endif %};">
+                  {{ resume.get_status_display }}
+                </span>
+                <form method="POST" action="{% url 'delete_resume' resume.id %}" onsubmit="return confirm('Delete this resume?')">
+                  {% csrf_token %}
+                  <button type="submit" style="background:rgba(255,101,132,0.1);border:none;border-radius:6px;color:var(--secondary);padding:0.35rem 0.6rem;cursor:pointer;font-size:0.8rem;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center" style="padding:3rem 0;">
+            <i class="fas fa-file-upload fa-3x mb-3" style="opacity:0.2;"></i>
+            <h6 style="color:var(--text-muted);">No resumes uploaded yet</h6>
+            <a href="{% url 'upload_resume' %}" class="btn-primary-custom text-decoration-none mt-2" style="font-size:0.88rem;padding:0.6rem 1.5rem;border-radius:8px;">
+              <i class="fas fa-upload me-1"></i>Upload Now
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

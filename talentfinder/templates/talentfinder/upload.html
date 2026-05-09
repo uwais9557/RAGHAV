@@ -1,0 +1,126 @@
+{% extends 'talentfinder/base.html' %}
+{% load static %}
+{% block title %}Upload Resume - Talent Finder{% endblock %}
+
+{% block content %}
+<section class="z-1" style="padding:4rem 0 5rem;min-height:100vh;">
+  <div class="container">
+    <div class="text-center mb-5 animate-on-scroll">
+      <div class="hero-badge d-inline-flex mb-3"><span class="dot"></span> AI Resume Analyzer</div>
+      <h1 class="section-title">Upload Your <span class="text-gradient">Resume</span></h1>
+      <p class="section-subtitle">Our AI will analyze your resume, detect skills, calculate your ATS score, and match you with the best jobs in seconds.</p>
+    </div>
+
+    <div class="row g-5 justify-content-center">
+      <!-- Upload Form -->
+      <div class="col-lg-7">
+        <div class="card-custom" style="padding:2.5rem;">
+          <form id="uploadForm" method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <!-- Upload Zone -->
+            <div class="upload-zone" id="uploadZone">
+              <div class="upload-icon-wrapper">
+                <i class="fas fa-cloud-upload-alt" style="font-size:2.5rem;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>
+              </div>
+              <h4 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.5rem;">Drop Your Resume Here</h4>
+              <p style="color:var(--text-muted);margin-bottom:1.5rem;">or click to browse files from your device</p>
+              <input type="file" id="resumeFile" name="resume_file" class="d-none" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
+              <div class="upload-formats">
+                <span class="format-badge"><i class="fas fa-file-pdf me-1"></i>PDF</span>
+                <span class="format-badge"><i class="fas fa-file-word me-1"></i>DOCX</span>
+                <span class="format-badge"><i class="fas fa-file-alt me-1"></i>TXT</span>
+                <span class="format-badge"><i class="fas fa-file-image me-1"></i>PNG/JPG</span>
+              </div>
+              <p style="font-size:0.8rem;color:var(--text-dim);margin-top:1rem;">Maximum file size: 10MB</p>
+              <div id="fileNameDisplay"></div>
+            </div>
+
+            {% if form.resume_file.errors %}
+            <div class="alert alert-danger mt-3">{{ form.resume_file.errors }}</div>
+            {% endif %}
+
+            <!-- Submit -->
+            <button type="submit" class="btn-primary-custom w-100 justify-content-center mt-4" style="font-size:1.05rem;padding:1rem;border-radius:var(--radius-sm);">
+              <i class="fas fa-brain me-2"></i> Analyze Resume with AI
+            </button>
+          </form>
+
+          <!-- What happens next -->
+          <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border-light);">
+            <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1rem;color:var(--text-muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;">What happens after upload?</h6>
+            <div class="d-flex flex-column gap-2">
+              {% for step in '1234' %}
+              <div class="d-flex align-items-center gap-2" style="font-size:0.88rem;color:var(--text-muted);">
+                {% if forloop.counter == 1 %}
+                <i class="fas fa-file-import" style="color:var(--primary);width:16px;"></i> Text extraction from your document
+                {% elif forloop.counter == 2 %}
+                <i class="fas fa-tags" style="color:var(--secondary);width:16px;"></i> 70+ skills auto-detected with NLP
+                {% elif forloop.counter == 3 %}
+                <i class="fas fa-star" style="color:var(--accent);width:16px;"></i> ATS score calculated (0-100)
+                {% else %}
+                <i class="fas fa-bullseye" style="color:var(--accent2);width:16px;"></i> Top 5 jobs matched with % score
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Info -->
+      <div class="col-lg-4">
+        <!-- Tips Card -->
+        <div class="card-custom mb-4">
+          <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-lightbulb" style="color:var(--accent);"></i> Resume Tips
+          </h6>
+          <ul style="color:var(--text-muted);font-size:0.88rem;line-height:2;padding-left:1.2rem;margin:0;">
+            <li>Use a clean, readable layout</li>
+            <li>Include relevant keywords for your role</li>
+            <li>List your skills explicitly in a section</li>
+            <li>Mention technologies with full names</li>
+            <li>Add contact info clearly at the top</li>
+            <li>Keep it 1-2 pages for best results</li>
+          </ul>
+        </div>
+
+        <!-- Privacy Card -->
+        <div class="card-custom mb-4">
+          <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-shield-alt" style="color:var(--primary);"></i> Your Privacy
+          </h6>
+          <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.7;margin:0;">
+            Your resume is stored securely and only used for analysis. We never share your data with third parties. You can delete your resume at any time from your profile.
+          </p>
+        </div>
+
+        <!-- History -->
+        {% if history %}
+        <div class="card-custom">
+          <h6 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-history" style="color:var(--secondary);"></i> Recent Uploads
+          </h6>
+          <div class="d-flex flex-column gap-2">
+            {% for r in history %}
+            <div style="background:var(--bg-card2);border-radius:var(--radius-sm);padding:0.75rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+              <div style="min-width:0;">
+                <div style="font-size:0.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.original_filename }}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">{{ r.uploaded_at|date:"M d, Y" }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
+                <span style="font-size:0.75rem;font-weight:700;color:{% if r.ats_score >= 70 %}var(--accent){% elif r.ats_score >= 40 %}orange{% else %}var(--secondary){% endif %}">{{ r.ats_score }}%</span>
+                {% if r.status == 'completed' %}
+                <a href="{% url 'dashboard' %}" style="font-size:0.72rem;color:var(--primary-light);">View</a>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
